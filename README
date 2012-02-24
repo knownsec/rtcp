@@ -1,0 +1,15 @@
+rtcp.py
+
+@desc:
+利用python的socket端口转发，用于远程维护
+如果连接不到远程，会sleep 36s，最多尝试200(即两小时)
+
+@usage:
+./rtcp.py stream1 stream2
+stream为：l:port或c:host:port
+l:port表示监听指定的本地端口
+c:host:port表示监听远程指定的端口
+
+@author: watercloud, zd, knownsec team
+@web: www.knownsec.com, blog.knownsec.com
+
