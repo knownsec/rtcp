@@ -1,7 +1,7 @@
-#!/usr/bin/env python
-#coding:utf-8
+# -*- coding: utf-8 -*-
 
-'''filename:rtcp.py
+'''
+filename:rtcp.py
 @desc:
 利用python的socket端口转发，用于远程维护
 如果连接不到远程，会sleep 36s，最多尝试200(即两小时)
@@ -17,12 +17,13 @@ c:host:port表示监听远程指定的端口
 @date: 2009-7
 '''
 
-import threading
 import socket
-import sys,os,time
+import sys
+import threading
+import time
 
-streams = [None,None]  #存放需要进行数据转发的两个数据流（都是SocketObj对象）
-debug = 1 #调试状态 0 or 1
+streams = [None, None]  # 存放需要进行数据转发的两个数据流（都是SocketObj对象）
+debug = 1  # 调试状态 0 or 1
 
 def _usage():
 	print 'Usage: ./rtcp.py stream1 stream2\nstream : l:port  or c:host:port'
@@ -48,7 +49,7 @@ def _get_another_stream(num):
 		else:
 			time.sleep(1)
 
-def _xstream(num,s1,s2):
+def _xstream(num, s1, s2):
 	'''
 	交换两个流的数据
 	num为当前流编号,主要用于调试目的，区分两个回路状态用。
@@ -82,65 +83,65 @@ def _xstream(num,s1,s2):
 
 	streams[0] = None
 	streams[1] = None
-	print num,"CLOSED"
+	print num, "CLOSED"
 
-def _server(port,num):
+def _server(port, num):
 	'''
 	处理服务情况,num为流编号（第0号还是第1号）
 	'''
-	srv = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	srv.bind(('0.0.0.0',port))
+	srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	srv.bind(('0.0.0.0', port))
 	srv.listen(1)
-	while 1:
-		conn,addr = srv.accept()
-		print "connected from:",addr
-		streams[num] = conn  #放入本端流对象
-		s2 = _get_another_stream(num) #获取另一端流对象
-		_xstream(num,conn,s2)
+	while True:
+		conn, addr = srv.accept()
+		print "connected from:", addr
+		streams[num] = conn  # 放入本端流对象
+		s2 = _get_another_stream(num)  # 获取另一端流对象
+		_xstream(num, conn, s2)
 
-def _connect(host,port,num):
-	'''	处理连接,num为流编号（第0号还是第1号）
+def _connect(host, port, num):
+	'''	处理连接，num为流编号（第0号还是第1号）
 
 	@note: 如果连接不到远程，会sleep 36s，最多尝试200(即两小时)
 	'''
 	not_connet_time = 0
 	wait_time = 36
 	try_cnt = 199
-	while 1:
+	while True:
 		if not_connet_time > try_cnt:
 			streams[num] = 'quit'
 			print('not connected')
 			return None
 
-		conn=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
-			conn.connect((host,port))
+			conn.connect((host, port))
 		except Exception, e:
-			print ('can not connect %s:%s!'%(host,port))
+			print ('can not connect %s:%s!' % (host, port))
 			not_connet_time += 1
 			time.sleep(wait_time)
 			continue
 
-		print "connected to %s:%i" %(host,port)
+		print "connected to %s:%i" % (host, port)
 		streams[num] = conn  #放入本端流对象
 		s2 = _get_another_stream(num) #获取另一端流对象
-		_xstream(num,conn,s2)
+		_xstream(num, conn, s2)
 
 
 if __name__ == '__main__':
 	if len(sys.argv) != 3:
 		_usage()
 		sys.exit(1)
-	tlist = [] #线程列表，最终存放两个线程对象
-	targv = [sys.argv[1],sys.argv[2] ]
-	for i in [0,1]:
-		s = targv[i] #stream描述 c:ip:port 或 l:port
+	tlist = []  # 线程列表，最终存放两个线程对象
+	targv = [sys.argv[1], sys.argv[2] ]
+	for i in [0, 1]:
+		s = targv[i]  # stream描述 c:ip:port 或 l:port
 		sl = s.split(':')
-		if len(sl) == 2 and (sl[0] == 'l' or sl[0] == 'L'): #l:port
-			t = threading.Thread(target=_server,args=(int(sl[1]),i))
+		if len(sl) == 2 and (sl[0] == 'l' or sl[0] == 'L'):  # l:port
+			t = threading.Thread(target=_server, args=(int(sl[1]), i))
 			tlist.append(t)
-		elif len(sl) == 3 and (sl[0] == 'c' or sl[0] == 'C'): #c:host:port
-			t = threading.Thread(target=_connect,args=(sl[1],int(sl[2]),i))
+		elif len(sl) == 3 and (sl[0] == 'c' or sl[0] == 'C'):  # c:host:port
+			t = threading.Thread(target=_connect, args=(sl[1], int(sl[2]), i))
 			tlist.append(t)
 		else:
 			_usage()
@@ -151,5 +152,3 @@ if __name__ == '__main__':
 	for t in tlist:
 		t.join()
 	sys.exit(0)
-#EOF
-
