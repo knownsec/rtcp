@@ -91,6 +91,7 @@ def _server(port, num):
     处理服务情况,num为流编号（第0号还是第1号）
     '''
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     srv.bind(('0.0.0.0', port))
     srv.listen(1)
     while True:
