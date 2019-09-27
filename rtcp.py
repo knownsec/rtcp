@@ -50,6 +50,9 @@ def _get_another_stream(num):
 
         if streams[num] is not None:
             return streams[num]
+        elif streams[num] is None and streams[num^1] is None:
+            print('stream CLOSED')
+            return None
         else:
             time.sleep(1)
 
